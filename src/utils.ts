@@ -42,7 +42,7 @@ export const SettingDefinitions = [
     type: 'number',
   },
   {
-    key: 'global_refresh_queue_limit',
+    key: 'enable_global_refresh_queue_limit',
     title: 'Enable Global refresh queue limit',
     default_value: false,
     type: 'boolean',
