@@ -1,7 +1,8 @@
 'use strict';
 
 import * as utils from './utils';
-import { onChatCommand, onOutgoingHubMessage, onOutgoingPrivateMessage } from './chat';
+import { onChatCommand } from './chat';
+import { getHashStats, onHashStats, onShareRefreshCompleted, onShareRefreshQueued } from './hash';
 // import searchItem from './search';
 import type { APISocket } from 'airdcpp-apisocket';
 
@@ -9,6 +10,7 @@ const CONFIG_VERSION = 1;
 
 // Settings manager docs: https://github.com/airdcpp-web/airdcpp-extension-settings-js
 import SettingsManager from 'airdcpp-extension-settings';
+import { printEvent } from './log';
 
 
 export default (socket: APISocket, extension: any) => {
@@ -29,12 +31,22 @@ export default (socket: APISocket, extension: any) => {
       id: 'advanced_sharing',
       name: 'Advanced Sharing',
     };
-    if (sessionInfo.system_info.api_feature_level >= 4) {
+
+    // make sure to run when the settings are updated
+    settings.onValuesUpdated = onHashStats.bind(null , socket, settings, await getHashStats(socket));
+
+    if (sessionInfo.system_info.api_feature_level >= 5) {
       socket.addListener('hubs', 'hub_text_command', onChatCommand.bind(null, socket, 'hubs'));
       socket.addListener('private_chat', 'private_chat_text_command', onChatCommand.bind(null, socket, 'private_chat'));
+      socket.addListener('share', 'share_refresh_queued', onShareRefreshQueued.bind(null, socket));
+      socket.addListener('share', 'share_refresh_completed', onShareRefreshCompleted.bind(null, socket));
+      socket.addListener('hash', 'hash_statistics', onHashStats.bind(null, socket, settings));
     } else {
-      socket.addHook('hubs', 'hub_outgoing_message_hook', onOutgoingHubMessage.bind(null, socket), subscriberInfo);
-      socket.addHook('private_chat', 'private_chat_outgoing_message_hook', onOutgoingPrivateMessage.bind(null, socket), subscriberInfo);
+      await printEvent(socket, `This extension needs at least AirDC++ API feature level 5, you are currently using ${sessionInfo.system_info.api_feature_level} introduced in AirDC++w 2.9.0. Please consider upgrading.`, 'error');
+      await utils.sleep(2000);
+      process.exit(1);
+      // socket.addHook('hubs', 'hub_outgoing_message_hook', onOutgoingHubMessage.bind(null, socket), subscriberInfo);
+      // socket.addHook('private_chat', 'private_chat_outgoing_message_hook', onOutgoingPrivateMessage.bind(null, socket), subscriberInfo);
     }
 
 
