@@ -5,9 +5,9 @@ Extension advanced sharing options, batch hashing with stop or resume option. Fi
 - [Bug tracker](https://github.com/peps1/airdcpp-advanced-sharing/issues)
 - [Changelog](https://github.com/peps1/airdcpp-advanced-sharing/blob/master/CHANGELOG.md)
 
-## Screenshot
+## Notes
 
-![Output](doc/none.png?raw=true "None")
+* Depending on the storage performance the refresh process can overshoot the queue limit a bit before the the extension receives the information about the current hash queue and can send a stop to the refresh process.
 
 
 ## Resources

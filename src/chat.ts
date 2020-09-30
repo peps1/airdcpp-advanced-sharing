@@ -2,6 +2,7 @@
   // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-chat-message
 
 import { APISocket } from 'airdcpp-apisocket';
+import { stopHashing } from './hash';
 import { printEvent, printStatusMessage } from './log';
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
@@ -41,8 +42,16 @@ export const checkChatCommand = async (socket: APISocket, type: string, data: an
 
   switch (command) {
     case 'help': {
-      printEvent(socket, 'Received help command..', 'info');
+      const helpText = `
+        Advanced sharing commands
+
+        /stophash\tStop all running hashers and clear refresh queue
+      `
+      printStatusMessage(socket, helpText, type, entityId)
       break;
+    }
+    case 'stophash': {
+      stopHashing(socket);
     }
   }
 
