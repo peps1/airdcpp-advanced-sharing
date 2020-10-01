@@ -2,7 +2,7 @@
 
 import * as utils from './utils';
 import { onChatCommand } from './chat';
-import { getHashStats, checkHashQueue, onShareRefreshCompleted, onShareRefreshQueued } from './hash';
+import { checkHashQueue, onShareRefreshCompleted, onShareRefreshQueued } from './hash';
 // import searchItem from './search';
 import type { APISocket } from 'airdcpp-apisocket';
 
@@ -45,13 +45,10 @@ export default (socket: APISocket, extension: any) => {
       // Refresh listeners
       socket.addListener('share', 'share_refresh_queued', onShareRefreshQueued.bind(null, socket, settings));
       socket.addListener('share', 'share_refresh_completed', onShareRefreshCompleted.bind(null, socket));
-      // socket.addListener('hash', 'hash_statistics', onHashStats.bind(null, socket, settings));
     } else {
       await printEvent(socket, `This extension needs at least AirDC++ API feature level 5, you are currently using ${sessionInfo.system_info.api_feature_level} introduced in AirDC++w 2.9.0. Please consider upgrading.`, 'error');
       await utils.sleep(2000);
       process.exit(1);
-      // socket.addHook('hubs', 'hub_outgoing_message_hook', onOutgoingHubMessage.bind(null, socket), subscriberInfo);
-      // socket.addHook('private_chat', 'private_chat_outgoing_message_hook', onOutgoingPrivateMessage.bind(null, socket), subscriberInfo);
     }
 
 

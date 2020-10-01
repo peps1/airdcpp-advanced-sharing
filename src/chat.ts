@@ -18,22 +18,6 @@ export const sendChatMessage = (socket: APISocket, chatMessage: string, type: st
 };
 
 // Basic chat command handling, returns possible status message to post
-// TODO: (legacy, remove at some point)
-export const checkLegacyChatCommand = async (socket: APISocket, message: any, type: string) => {
-  const text = message.text;
-  if (text.length === 0 || text[0] !== '/') {
-    return null;
-  }
-
-  const command = message.text.split(' ');
-  const args = command.slice(1);
-
-  if (text === '/help') {
-    printEvent(socket, 'Received legacy help command..', 'info');
-    return null;
-  }
-  return null;
-};
 
 // entityId is the session_id used to reference the current chat session
 // example https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
@@ -65,14 +49,3 @@ export const onChatCommand = async (socket: APISocket, type: string, data: any, 
   }
 };
 
-export const onOutgoingHubMessage = (socket: APISocket, message: any, accept: any) => {
-  checkLegacyChatCommand(socket, message, 'hubs');
-
-  accept();
-};
-
-export const onOutgoingPrivateMessage = (socket: APISocket, message: any, accept: any) => {
-  checkLegacyChatCommand(socket, message, 'private');
-
-  accept();
-};
