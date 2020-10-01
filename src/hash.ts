@@ -7,6 +7,8 @@ export const checkHashQueue = async (socket: APISocket, settings: any, queuedRef
   const globalQueueLimitEnabled = settings.getValue('enable_global_refresh_queue_limit');
   const globalQueueLimit = settings.getValue('global_refresh_queue_limit');
 
+  // When changing the settings, we need to get the current stats to see
+  // if we need to abort any refresh tasks
   if (!data) {
     data = await getHashStats(socket);
   }
@@ -19,13 +21,14 @@ export const checkHashQueue = async (socket: APISocket, settings: any, queuedRef
         if (task.id === queuedRefresh.id) {
           abortRefreshTask(socket, task.id)
         } else if (!queuedRefresh) {
-          printEvent(socket, `Running task: ${JSON.stringify(task)}`, 'info');
+          // Here we abort the refresh task that was running while we changed the settings
+          // and the refresh queue is already over the limit
+          printEvent(socket, `Aborting running task: ${JSON.stringify(task)}`, 'info');
           abortRefreshTask(socket, task.id)
         }
       }
       // remove listener here
-      // eslint-disable-next-line no-console
-      console.log(socket.hasListeners());
+      globalThis.HASH_LISTENER();
     }
   }
 };
@@ -56,6 +59,7 @@ export const listRefreshTasks = async (socket: APISocket) => {
   return res;
 };
 
+// https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/abort-refresh-task
 export const abortRefreshTask = async (socket: APISocket, taskId: number) => {
   try {
     socket.delete(`share/refresh/tasks/${taskId}`);
@@ -85,6 +89,7 @@ export const abortRefresh = async (socket: APISocket) => {
   }
 };
 
+// https://airdcpp.docs.apiary.io/#reference/hashing/methods/stop-hashing
 export const stopHashing = async (socket: APISocket) => {
   try {
     socket.post('hash/stop');
@@ -93,15 +98,13 @@ export const stopHashing = async (socket: APISocket) => {
   }
 };
 
+// Event Callbacks
 export const onShareRefreshQueued = async (socket: APISocket, settings: any, refreshQueuedData: any) => {
   printEvent(socket, `Received share_refresh_queued event: ${JSON.stringify(refreshQueuedData)}`, 'info');
-  const listener = await socket.addListener('hash', 'hash_statistics', checkHashQueue.bind(null, socket, settings, refreshQueuedData));
+  globalThis.HASH_LISTENER = await socket.addListener('hash', 'hash_statistics', checkHashQueue.bind(null, socket, settings, refreshQueuedData));
 
-  // eslint-disable-next-line no-console
-  console.log(`Listener: ${JSON.stringify(listener)}`);
 };
 
 export const onShareRefreshCompleted = async (socket: APISocket, data: any) => {
-  //
   printEvent(socket, `Received share_refresh_completed event: ${JSON.stringify(data)}`, 'info');
 };
