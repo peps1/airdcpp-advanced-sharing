@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 
-// eslint-disable-next-line no-var
-declare var HASH_LISTENER: any;
+declare var HASH_STATS_LISTENER: any;
+declare var HASHER_DIR_FINISHED_LISTENER: any;

@@ -2,7 +2,7 @@
 
 import * as utils from './utils';
 import { onChatCommand } from './chat';
-import { checkHashQueue, onShareRefreshCompleted, onShareRefreshQueued } from './hash';
+import { checkHashQueue, onShareRefreshCompleted, onShareRefreshQueued, onHasherDirectoryFinished } from './hash';
 // import searchItem from './search';
 import type { APISocket } from 'airdcpp-apisocket';
 
@@ -45,6 +45,11 @@ export default (socket: APISocket, extension: any) => {
       // Refresh listeners
       socket.addListener('share', 'share_refresh_queued', onShareRefreshQueued.bind(null, socket, settings));
       socket.addListener('share', 'share_refresh_completed', onShareRefreshCompleted.bind(null, socket));
+
+      // For the auto-resume we add another Listener
+      if (settings.getValue('auto_resume_refresh')) {
+        globalThis.HASHER_DIR_FINISHED_LISTENER = await socket.addListener('hash', 'hasher_directory_finished', onHasherDirectoryFinished.bind(null, socket));
+      }
     } else {
       await printEvent(socket, `This extension needs at least AirDC++ API feature level 5, you are currently using ${sessionInfo.system_info.api_feature_level} introduced in AirDC++w 2.9.0. Please consider upgrading.`, 'error');
       await utils.sleep(2000);
