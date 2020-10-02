@@ -4,38 +4,80 @@ import type { APISocket } from 'airdcpp-apisocket';
 import { printEvent } from './log';
 
 export const checkHashQueue = async (socket: APISocket, settings: any, queuedRefresh: any, data: any) => {
+
   const globalQueueLimitEnabled = settings.getValue('enable_global_refresh_queue_limit');
-  const globalQueueLimit = settings.getValue('global_refresh_queue_limit');
+  const globalQueueLimit        = settings.getValue('global_refresh_queue_limit');
+  const autoResume              = settings.getValue('auto_resume_refresh')
+  let   callback                = true;
 
   // When changing the settings, we need to get the current stats to see
   // if we need to abort any refresh tasks
   if (!data) {
     data = await getHashStats(socket);
+    callback = false;
   }
 
   if ( globalQueueLimitEnabled && globalQueueLimit !== 0 ) {
-    if (data.hash_bytes_left >= bytes(`${globalQueueLimit}GB`)) {
+    autoAbortRefresh(socket, settings, queuedRefresh, data);
+  }
 
-      const refreshTasks = await listRunningRefreshTasks(socket);
+  if (callback && autoResume && data.hash_bytes_left === 0) {
+    autoResumeRefresh(socket, queuedRefresh);
+  }
 
-      for (const task of refreshTasks) {
-        if (task.id === queuedRefresh.id) {
-          abortRefreshTask(socket, task.id)
-        } else if (!queuedRefresh) {
-          // Here we abort the refresh task that was running while the settings were changed
-          // and the refresh queue is already over the limit
-          printEvent(socket, `Aborting running task: ${JSON.stringify(task)}`, 'info');
-          abortRefreshTask(socket, task.id)
-        }
+};
+
+/**
+ * Abort refresh if queue is over limit
+ *
+ * @param socket          APISocket
+ * @param settings        Extension Settings
+ * @param queuedRefresh   Refresh that triggered this action
+ * @param data            Data object from the callback
+ */
+const autoAbortRefresh = async (socket: APISocket, settings: any, queuedRefresh: any, data: any) => {
+
+  const globalQueueLimit = settings.getValue('global_refresh_queue_limit');
+
+  if (data.hash_bytes_left >= bytes(`${globalQueueLimit}GB`) && globalThis.REFRESH_RUNNING) {
+
+    const refreshTasks = await listRunningRefreshTasks(socket);
+
+    for (const task of refreshTasks) {
+      if (task.id === queuedRefresh.id) {
+        abortRefreshTask(socket, task.id)
+      } else if (!queuedRefresh) {
+        // Here we abort the refresh task that was running while the settings were changed
+        // and the refresh queue is already over the limit
+        printEvent(socket, `Aborting running task: ${JSON.stringify(task)}`, 'info');
+        abortRefreshTask(socket, task.id)
       }
+      globalThis.REFRESH_RUNNING = false;
+    }
+
+    if (!settings.getValue('auto_resume_refresh')) {
+
       // remove listener here
       // TODO: does this make sense here? - why didn't it work properly with the onShareRefreshCompleted callback?
       globalThis.HASH_STATS_LISTENER();
     }
   }
+}
+
+// resume refresh, if no refresh tasks are running
+const autoResumeRefresh = async (socket: APISocket, queuedRefresh: any) => {
+
+  const refreshTasks = await listRunningRefreshTasks(socket);
+
+  // only start refresh if no refresh is running
+  if (refreshTasks.length === 0) {
+    refreshRealPaths(socket, queuedRefresh.real_paths);
+  }
+
 };
 
-const listRunningRefreshTasks = async (socket: APISocket) => {
+
+export const listRunningRefreshTasks = async (socket: APISocket) => {
   const refreshTasks: any = await listRefreshTasks(socket);
   const runningTasks = [];
 
@@ -62,7 +104,7 @@ const listRefreshTasks = async (socket: APISocket) => {
 };
 
 // https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/abort-refresh-task
-const abortRefreshTask = async (socket: APISocket, taskId: number) => {
+export const abortRefreshTask = async (socket: APISocket, taskId: number) => {
   try {
     socket.delete(`share/refresh/tasks/${taskId}`);
   } catch (e) {
@@ -80,15 +122,6 @@ const getHashStats = async (socket: APISocket) => {
   }
 
   return res;
-};
-
-// https://airdcpp.docs.apiary.io/#reference/share/generic-methods/abort-refresh
-const abortRefresh = async (socket: APISocket) => {
-  try {
-    socket.delete('share/refresh');
-  } catch (e) {
-    printEvent(socket, `Couldn't abort refresh: ${e}`, 'error');
-  }
 };
 
 // https://airdcpp.docs.apiary.io/#reference/hashing/methods/stop-hashing
@@ -111,20 +144,16 @@ const refreshRealPaths = async (socket: APISocket, paths: any) => {
   }
 };
 
-export const onHasherDirectoryFinished = async (socket: APISocket, data: any) => {
-  // get the real paths from data
-  // trigger refresh for paths
-  printEvent(socket, `Received hasher_directory_finished: ${JSON.stringify(data)}`, 'info' );
-};
-
 // Event Callbacks
+
 export const onShareRefreshQueued = async (socket: APISocket, settings: any, refreshQueuedData: any) => {
   printEvent(socket, `Received share_refresh_queued event: ${JSON.stringify(refreshQueuedData)}`, 'info');
   globalThis.HASH_STATS_LISTENER = await socket.addListener('hash', 'hash_statistics', checkHashQueue.bind(null, socket, settings, refreshQueuedData));
+  globalThis.REFRESH_RUNNING = true;
 
 };
 
 export const onShareRefreshCompleted = async (socket: APISocket, data: any) => {
   printEvent(socket, `Received share_refresh_completed event: ${JSON.stringify(data)}`, 'info');
-  await globalThis.HASH_STATS_LISTENER();
+  // globalThis.HASH_STATS_LISTENER();
 };
