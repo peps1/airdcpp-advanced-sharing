@@ -9,6 +9,12 @@ Extension advanced sharing options, batch hashing with stop or resume option. Fi
 
 * Depending on the storage performance the refresh process can overshoot the queue limit a bit before the the extension receives the information about the current hash queue and can send a stop to the refresh process.
 
+## Available Commands
+
+| Command | Description | Visibility |
+| :---    | :---        | :---       |
+| /stophash | Stop all running hashers and clear refresh queue | |
+
 
 ## Resources
 
