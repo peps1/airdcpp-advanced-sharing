@@ -2,7 +2,7 @@
   // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-chat-message
 
 import { APISocket } from 'airdcpp-apisocket';
-import { stopHashing } from './hash';
+import { stopHashing, listRunningRefreshTasks, abortRefreshTask } from './hash';
 import { printEvent, printStatusMessage } from './log';
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
@@ -23,19 +23,42 @@ export const sendChatMessage = (socket: APISocket, chatMessage: string, type: st
 // example https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
 export const checkChatCommand = async (socket: APISocket, type: string, data: any, entityId: string|number) => {
   const { command, args } = data;
+  let output;
 
   switch (command) {
     case 'help': {
-      const helpText = `
-        Advanced sharing commands
+      const helpText = `        Advanced sharing commands
 
-        /stophash\tStop all running hashers and clear refresh queue
-      `
+        /stophash\t\tStop all running hashers and clear refresh queue
+        /tasks\t\t\tList all running refresh tasks
+        /aborttask TASK_ID\tAbort task with the provided task id`
       printStatusMessage(socket, helpText, type, entityId)
       break;
     }
     case 'stophash': {
       stopHashing(socket);
+      break;
+    }
+    case 'tasks': {
+      const runningTasks = await listRunningRefreshTasks(socket);
+      if (runningTasks.length === 0) {
+        output = 'No running tasks found...';
+      } else {
+        output = JSON.stringify(runningTasks);
+      }
+      printStatusMessage(socket, output, type, entityId);
+      break;
+    }
+    case 'aborttask': {
+      await abortRefreshTask(socket, args);
+      const runningTasks = await listRunningRefreshTasks(socket);
+      if (runningTasks.length === 0) {
+        output = 'No running tasks found...';
+      } else {
+        output = JSON.stringify(runningTasks);
+      }
+      printStatusMessage(socket, output, type, entityId);
+      break;
     }
   }
 
