@@ -14,6 +14,8 @@ Extension advanced sharing options, batch hashing with stop or resume option. Fi
 | Command | Description | Visibility |
 | :---    | :---        | :---       |
 | /stophash | Stop all running hashers and clear refresh queue | |
+| /tasks | List all running refresh tasks | |
+| /aborttask TASK_ID | Abort task with the provided task id | |
 
 
 ## Resources
