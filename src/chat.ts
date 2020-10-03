@@ -2,7 +2,7 @@
   // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-chat-message
 
 import { APISocket } from 'airdcpp-apisocket';
-import { stopHashing, listRunningRefreshTasks, abortRefreshTask } from './hash';
+import { listRunningRefreshTasks, abortRefreshTask, refreshVirtualPath, refreshWholeShare, hashingAction } from './hash';
 import { printEvent, printStatusMessage } from './log';
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
@@ -36,7 +36,7 @@ export const checkChatCommand = async (socket: APISocket, type: string, data: an
       break;
     }
     case 'stophash': {
-      stopHashing(socket);
+      hashingAction(socket, 'stop');
       break;
     }
     case 'tasks': {
@@ -58,6 +58,26 @@ export const checkChatCommand = async (socket: APISocket, type: string, data: an
         output = JSON.stringify(runningTasks);
       }
       printStatusMessage(socket, output, type, entityId);
+      break;
+    }
+    case 'refresh': {
+      const res = await refreshVirtualPath(socket, args);
+      output = JSON.stringify(res);
+      printStatusMessage(socket, output, output, entityId)
+      break;
+    }
+    case 'fullrefresh': {
+      const res = await refreshWholeShare(socket);
+      output = JSON.stringify(res);
+      printStatusMessage(socket, output, output, entityId)
+      break;
+    }
+    case 'pausehash': {
+      hashingAction(socket, 'pause');
+      break;
+    }
+    case 'resumehash': {
+      hashingAction(socket, 'resume');
       break;
     }
   }

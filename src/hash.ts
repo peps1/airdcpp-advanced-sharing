@@ -124,24 +124,53 @@ const getHashStats = async (socket: APISocket) => {
   return res;
 };
 
+// https://airdcpp.docs.apiary.io/#reference/hashing/methods/pause-hashing
+// https://airdcpp.docs.apiary.io/#reference/hashing/methods/resume-hashing
 // https://airdcpp.docs.apiary.io/#reference/hashing/methods/stop-hashing
-export const stopHashing = async (socket: APISocket) => {
+export const hashingAction = async (socket: APISocket, type: string) => {
   try {
-    socket.post('hash/stop');
+    socket.post(`hash/${type}`);
   } catch (e) {
-    printEvent(socket, `Couldn't abort refresh: ${e}`, 'error');
+    printEvent(socket, `Couldn't ${type} hashing: ${JSON.stringify(e)}`, 'error');
   }
 };
 
 // https://airdcpp.docs.apiary.io/#reference/share/generic-methods/refresh-real-paths
-const refreshRealPaths = async (socket: APISocket, paths: any) => {
+export const refreshRealPaths = async (socket: APISocket, paths: any) => {
+  let res;
   try {
-    socket.post('share/refresh/paths', {
+    res = await socket.post('share/refresh/paths', {
       paths
     });
   } catch (e) {
+    printEvent(socket, `Couldn't refresh: ${JSON.stringify(e)}`, 'error');
+  }
+  return res;
+};
+
+// https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/refresh-virtual-path
+export const refreshVirtualPath = async (socket: APISocket, path: any) => {
+  // TODO: add prio
+  let res;
+  try {
+    res = await socket.post('share/refresh/virtual', {
+      path
+    });
+  } catch (e) {
+    printEvent(socket, `Couldn't refresh: ${JSON.stringify(e)}`, 'error');
+  }
+  return res;
+};
+
+// https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/refresh-whole-share
+export const refreshWholeShare = async (socket: APISocket) => {
+  let res;
+  try {
+    res = await socket.post('share/refresh');
+  } catch (e) {
     printEvent(socket, `Couldn't abort refresh: ${e}`, 'error');
   }
+  return res;
 };
 
 // Event Callbacks
