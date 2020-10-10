@@ -3,6 +3,7 @@ import bytes from 'bytes';
 import type { APISocket } from 'airdcpp-apisocket';
 import { printEvent } from './log';
 
+
 export const checkHashQueue = async (socket: APISocket, settings: any, queuedRefresh: any, data: any) => {
 
   const globalQueueLimitEnabled = settings.getValue('enable_global_refresh_queue_limit');
@@ -39,20 +40,25 @@ const autoAbortRefresh = async (socket: APISocket, settings: any, queuedRefresh:
 
   const globalQueueLimit = settings.getValue('global_refresh_queue_limit');
 
-  if (data.hash_bytes_left >= bytes(`${globalQueueLimit}GB`) && globalThis.REFRESH_RUNNING) {
+
+  if (data.hash_bytes_left >= bytes(`${globalQueueLimit}GB`)) {
 
     const refreshTasks = await listRunningRefreshTasks(socket);
 
     for (const task of refreshTasks) {
-      if (task.id === queuedRefresh.id) {
-        abortRefreshTask(socket, task.id)
-      } else if (!queuedRefresh) {
-        // Here we abort the refresh task that was running while the settings were changed
-        // and the refresh queue is already over the limit
-        printEvent(socket, `Aborting running task: ${JSON.stringify(task)}`, 'info');
-        abortRefreshTask(socket, task.id)
+      let res = false;
+
+      while (!res) {
+        if (task.id === queuedRefresh.id) {
+          res = await abortRefreshTask(socket, task.id)
+        } else if (!queuedRefresh) {
+          // Here we abort the refresh task that was running while the settings were changed
+          // and the refresh queue is already over the limit
+          printEvent(socket, `Aborting running task: ${JSON.stringify(task)}`, 'info');
+          res = await abortRefreshTask(socket, task.id)
+        }
       }
-      globalThis.REFRESH_RUNNING = false;
+
     }
 
     if (!settings.getValue('auto_resume_refresh')) {
@@ -76,6 +82,30 @@ const autoResumeRefresh = async (socket: APISocket, queuedRefresh: any) => {
 
 };
 
+// List refresh tasks
+// https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/list-refresh-tasks
+const listRefreshTasks = async (socket: APISocket) => {
+  let res;
+  try {
+    res = await socket.get('share/refresh/tasks');
+  } catch (e) {
+    printEvent(socket, `Couldn't list refresh task. Error: ${e.code} - ${e.message}`, 'error');
+  }
+
+  return res;
+};
+
+// https://airdcpp.docs.apiary.io/#reference/hashing/methods/get-stats
+const getHashStats = async (socket: APISocket) => {
+  let res;
+  try {
+    res = await socket.get('hash/stats');
+  } catch (e) {
+    printEvent(socket, `Couldn't get hash stats. Error: ${e.code} - ${e.message}`, 'error');
+  }
+
+  return res;
+};
 
 export const listRunningRefreshTasks = async (socket: APISocket) => {
   const refreshTasks: any = await listRefreshTasks(socket);
@@ -90,38 +120,15 @@ export const listRunningRefreshTasks = async (socket: APISocket) => {
   return runningTasks;
 };
 
-// List refresh tasks
-// https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/list-refresh-tasks
-const listRefreshTasks = async (socket: APISocket) => {
-  let res;
-  try {
-    res = await socket.get('share/refresh/tasks');
-  } catch (e) {
-    printEvent(socket, `Couldn't list refresh taks: ${e}`, 'error');
-  }
-
-  return res;
-};
-
 // https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/abort-refresh-task
 export const abortRefreshTask = async (socket: APISocket, taskId: number) => {
   try {
-    socket.delete(`share/refresh/tasks/${taskId}`);
+    await socket.delete(`share/refresh/tasks/${taskId}`);
+    return true;
   } catch (e) {
-    printEvent(socket, `Couldn't abort refresh: ${e}`, 'error');
+    printEvent(socket, `Couldn't abort refresh. Error: ${e.code} - ${e.message}`, 'error');
+    return false;
   }
-};
-
-// https://airdcpp.docs.apiary.io/#reference/hashing/methods/get-stats
-const getHashStats = async (socket: APISocket) => {
-  let res;
-  try {
-    res = await socket.get('hash/stats');
-  } catch (e) {
-    printEvent(socket, `Couldn't get hash stats: ${e}`, 'error');
-  }
-
-  return res;
 };
 
 // https://airdcpp.docs.apiary.io/#reference/hashing/methods/pause-hashing
@@ -131,33 +138,34 @@ export const hashingAction = async (socket: APISocket, type: string) => {
   try {
     socket.post(`hash/${type}`);
   } catch (e) {
-    printEvent(socket, `Couldn't ${type} hashing: ${JSON.stringify(e)}`, 'error');
+    printEvent(socket, `Couldn't ${type} hashing. Error: ${e.code} - ${e.message}`, 'error');
   }
 };
 
 // https://airdcpp.docs.apiary.io/#reference/share/generic-methods/refresh-real-paths
-export const refreshRealPaths = async (socket: APISocket, paths: any) => {
+export const refreshRealPaths = async (socket: APISocket, paths: string) => {
   let res;
   try {
     res = await socket.post('share/refresh/paths', {
-      paths
+      paths: [paths]
     });
   } catch (e) {
-    printEvent(socket, `Couldn't refresh: ${JSON.stringify(e)}`, 'error');
+    printEvent(socket, `Couldn't refresh "${paths}". Error: ${e.code} - ${e.message}`, 'error');
   }
   return res;
 };
 
 // https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/refresh-virtual-path
-export const refreshVirtualPath = async (socket: APISocket, path: any) => {
-  // TODO: add prio
+export const refreshVirtualPath = async (socket: APISocket, path: string) => {
+  // TODO: add priority
+  // FIXME: path seems to need slash at the end for the matching? Need to look more into the matching here
   let res;
   try {
     res = await socket.post('share/refresh/virtual', {
       path
     });
   } catch (e) {
-    printEvent(socket, `Couldn't refresh: ${JSON.stringify(e)}`, 'error');
+    printEvent(socket, `Couldn't refresh "${path}". Error: ${e.code} - ${e.message}`, 'error');
   }
   return res;
 };
@@ -168,7 +176,7 @@ export const refreshWholeShare = async (socket: APISocket) => {
   try {
     res = await socket.post('share/refresh');
   } catch (e) {
-    printEvent(socket, `Couldn't abort refresh: ${e}`, 'error');
+    printEvent(socket, `Couldn't abort refresh. Error: ${e.code} - ${e.message}`, 'error');
   }
   return res;
 };
@@ -178,9 +186,13 @@ export const refreshWholeShare = async (socket: APISocket) => {
 export const onShareRefreshQueued = async (socket: APISocket, settings: any, refreshQueuedData: any) => {
   printEvent(socket, `Received share_refresh_queued event: ${JSON.stringify(refreshQueuedData)}`, 'info');
   globalThis.HASH_STATS_LISTENER = await socket.addListener('hash', 'hash_statistics', checkHashQueue.bind(null, socket, settings, refreshQueuedData));
-  globalThis.REFRESH_RUNNING = true;
 
 };
+
+export const onShareRefreshStarted = async (socket: APISocket, settings: any, refreshQueuedData: any)=> {
+  printEvent(socket, `Received share_refresh_started event: ${JSON.stringify(refreshQueuedData)}`, 'info');
+  // hmm what can i do here
+}
 
 export const onShareRefreshCompleted = async (socket: APISocket, data: any) => {
   printEvent(socket, `Received share_refresh_completed event: ${JSON.stringify(data)}`, 'info');
