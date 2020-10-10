@@ -1,16 +1,16 @@
 'use strict';
 
 import * as utils from './utils';
-import { onChatCommand } from './chat';
-import { checkHashQueue, onShareRefreshCompleted, onShareRefreshQueued, onHasherDirectoryFinished } from './hash';
+import {onChatCommand} from './chat';
+import {checkHashQueue, onShareRefreshCompleted, onShareRefreshQueued, onShareRefreshStarted} from './hash';
 // import searchItem from './search';
-import type { APISocket } from 'airdcpp-apisocket';
+import type {APISocket} from 'airdcpp-apisocket';
 
 const CONFIG_VERSION = 1;
 
 // Settings manager docs: https://github.com/airdcpp-web/airdcpp-extension-settings-js
 import SettingsManager from 'airdcpp-extension-settings';
-import { printEvent } from './log';
+import {printEvent} from './log';
 
 
 export default (socket: APISocket, extension: any) => {
@@ -37,26 +37,20 @@ export default (socket: APISocket, extension: any) => {
     settings.onValuesUpdated = checkHashQueue.bind(null, socket, settings);
 
 
-    if (sessionInfo.system_info.api_feature_level >= 5) {
-      // Chat listeners
-      socket.addListener('hubs', 'hub_text_command', onChatCommand.bind(null, socket, 'hubs'));
-      socket.addListener('private_chat', 'private_chat_text_command', onChatCommand.bind(null, socket, 'private_chat'));
+    // Chat listeners
+    socket.addListener('hubs', 'hub_text_command', onChatCommand.bind(null, socket, 'hubs'));
+    socket.addListener('private_chat', 'private_chat_text_command', onChatCommand.bind(null, socket, 'private_chat'));
 
-      // Refresh listeners
-      socket.addListener('share', 'share_refresh_queued', onShareRefreshQueued.bind(null, socket, settings));
-      socket.addListener('share', 'share_refresh_completed', onShareRefreshCompleted.bind(null, socket));
-
-    } else {
-      await printEvent(socket, `This extension needs at least AirDC++ API feature level 5, you are currently using ${sessionInfo.system_info.api_feature_level} introduced in AirDC++w 2.9.0. Please consider upgrading.`, 'error');
-      await utils.sleep(2000);
-      process.exit(1);
-    }
+    // Refresh listeners
+    socket.addListener('share', 'share_refresh_started', onShareRefreshStarted.bind(null, socket, settings));
+    socket.addListener('share', 'share_refresh_queued', onShareRefreshQueued.bind(null, socket, settings));
+    socket.addListener('share', 'share_refresh_completed', onShareRefreshCompleted.bind(null, socket));
 
 
   };
 
-	extension.onStop = () => {
-		// currently nothing
-	};
+  extension.onStop = () => {
+    // currently nothing
+  };
 
 };
