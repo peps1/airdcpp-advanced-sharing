@@ -10,8 +10,6 @@ const CONFIG_VERSION = 1;
 
 // Settings manager docs: https://github.com/airdcpp-web/airdcpp-extension-settings-js
 import SettingsManager from 'airdcpp-extension-settings';
-import {printEvent} from './log';
-
 
 export default (socket: APISocket, extension: any) => {
 
@@ -25,13 +23,15 @@ export default (socket: APISocket, extension: any) => {
 
   extension.onStart = async (sessionInfo: any) => {
 
-
     await settings.load();
 
     const subscriberInfo = {
       id: 'advanced_sharing',
       name: 'Advanced Sharing',
     };
+
+    // initially check the hash queue once
+    checkHashQueue(socket, settings);
 
     // make sure to run when the settings are updated
     settings.onValuesUpdated = checkHashQueue.bind(null, socket, settings);
@@ -45,7 +45,6 @@ export default (socket: APISocket, extension: any) => {
     socket.addListener('share', 'share_refresh_started', onShareRefreshStarted.bind(null, socket, settings));
     socket.addListener('share', 'share_refresh_queued', onShareRefreshQueued.bind(null, socket, settings));
     socket.addListener('share', 'share_refresh_completed', onShareRefreshCompleted.bind(null, socket));
-
 
   };
 
