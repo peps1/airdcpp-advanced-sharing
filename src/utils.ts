@@ -49,7 +49,7 @@ export const SettingDefinitions = [
   },
   {
     key: 'auto_resume_refresh',
-    title: 'Auto-resume refresh once current queue is hashed',
+    title: 'Auto-resume refresh once current queue is hashed (EXPERIMENTAL)',
     default_value: false,
     type: 'boolean',
   },
