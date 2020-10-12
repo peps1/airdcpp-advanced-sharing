@@ -4,11 +4,7 @@
 import { APISocket } from 'airdcpp-apisocket';
 import { listRunningRefreshTasks, abortRefreshTask, refreshVirtualPath, refreshWholeShare, hashingAction } from './hash';
 import { printEvent, printStatusMessage } from './log';
-import {render as pjs} from 'prettyjson';
 
-const pjsOptions = {
-  noColor: true
-}
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
 export const sendChatMessage = (socket: APISocket, chatMessage: string, type: string, entityId: string|number) => {
@@ -26,7 +22,7 @@ export const sendChatMessage = (socket: APISocket, chatMessage: string, type: st
 
 // entityId is the session_id used to reference the current chat session
 // example https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
-export const checkChatCommand = async (socket: APISocket, type: string, data: { command: string, args: Array<string>, permissions: Array<string> }, entityId: string|number) => {
+export const checkChatCommand = async (socket: APISocket, type: string, data: { command: string, args: string[], permissions: string[] }, entityId: string|number) => {
   const { command, args } = data;
   let output;
 
@@ -61,31 +57,31 @@ export const checkChatCommand = async (socket: APISocket, type: string, data: { 
       if (runningTasks.length === 0) {
         output = 'No running tasks found...';
       } else {
-        output = pjs(runningTasks, pjsOptions);
+        output = JSON.stringify(runningTasks);
       }
       printStatusMessage(socket, output, type, entityId);
       break;
     }
     case 'aborttask': {
-      await abortRefreshTask(socket, parseInt(args.toString()));
+      await abortRefreshTask(socket, parseInt(args.toString(), 10));
       const runningTasks = await listRunningRefreshTasks(socket);
       if (runningTasks.length === 0) {
         output = 'No running tasks found...';
       } else {
-        output = pjs(runningTasks, pjsOptions);
+        output = JSON.stringify(runningTasks);
       }
       printStatusMessage(socket, output, type, entityId);
       break;
     }
     case 'refresh': {
       const res = await refreshVirtualPath(socket, args.toString());
-      output = pjs(res, pjsOptions);
+      output = JSON.stringify(res);
       printStatusMessage(socket, output, output, entityId)
       break;
     }
     case 'fullrefresh': {
       const res = await refreshWholeShare(socket);
-      output = pjs(res, pjsOptions);
+      output = JSON.stringify(res);
       printStatusMessage(socket, output, output, entityId)
       break;
     }
@@ -95,7 +91,7 @@ export const checkChatCommand = async (socket: APISocket, type: string, data: { 
   return null;
 };
 
-export const onChatCommand = async (socket: APISocket, type: string, data: { command: string, args: Array<string>, permissions: Array<string> }, entityId: string|number) => {
+export const onChatCommand = async (socket: APISocket, type: string, data: { command: string, args: string[], permissions: string[] }, entityId: string|number) => {
   const statusMessage = await checkChatCommand(socket, type, data, entityId);
   if (statusMessage) {
     printStatusMessage(socket, statusMessage, type, entityId);
