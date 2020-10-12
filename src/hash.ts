@@ -3,26 +3,46 @@ import bytes from 'bytes';
 import type { APISocket } from 'airdcpp-apisocket';
 import { printEvent } from './log';
 
+/**
+ * Check the hash queue (non-callback)
+ *
+ * @param socket          APISocket
+ * @param settings        Extension Settings
+ */
+export const checkHashQueue = async (socket: APISocket, settings: any) => {
 
-export const checkHashQueue = async (socket: APISocket, settings: any, queuedRefresh: any, data: any) => {
+  const globalQueueLimitEnabled = settings.getValue('enable_global_refresh_queue_limit');
+  const globalQueueLimit        = settings.getValue('global_refresh_queue_limit');
+
+  // When changing the settings, we need to get the current stats to see
+  // if we need to abort any refresh tasks
+  const data = await getHashStats(socket);
+  const queuedRefresh = undefined;
+
+  if ( globalQueueLimitEnabled && globalQueueLimit !== 0 ) {
+    autoAbortRefresh(socket, settings, queuedRefresh, data);
+  }
+}
+/**
+ * Callback to check the hash queue
+ *
+ * @param socket          APISocket
+ * @param settings        Extension Settings
+ * @param queuedRefresh   Refresh that triggered this action
+ * @param data            Data object from the callback, with the hash stats
+ */
+export const cbCheckHashQueue = async (socket: APISocket, settings: any, queuedRefresh: any, data: any) => {
 
   const globalQueueLimitEnabled = settings.getValue('enable_global_refresh_queue_limit');
   const globalQueueLimit        = settings.getValue('global_refresh_queue_limit');
   const autoResume              = settings.getValue('auto_resume_refresh')
-  let   callback                = true;
-
-  // When changing the settings, we need to get the current stats to see
-  // if we need to abort any refresh tasks
-  if (!data) {
-    data = await getHashStats(socket);
-    callback = false;
-  }
 
   if ( globalQueueLimitEnabled && globalQueueLimit !== 0 ) {
     autoAbortRefresh(socket, settings, queuedRefresh, data);
   }
 
-  if (callback && autoResume && data.hash_bytes_left === 0) {
+  // we only do autoResume on callbacks
+  if (autoResume && data.hash_bytes_left === 0) {
     autoResumeRefresh(socket, queuedRefresh);
   }
 
@@ -34,14 +54,14 @@ export const checkHashQueue = async (socket: APISocket, settings: any, queuedRef
  * @param socket          APISocket
  * @param settings        Extension Settings
  * @param queuedRefresh   Refresh that triggered this action
- * @param data            Data object from the callback
+ * @param data            passed through data object from the callback, with the hash stats
  */
 const autoAbortRefresh = async (socket: APISocket, settings: any, queuedRefresh: any, data: any) => {
 
   const globalQueueLimit = settings.getValue('global_refresh_queue_limit');
 
 
-  if (data.hash_bytes_left >= bytes(`${globalQueueLimit}GB`)) {
+  if (data.hash_bytes_added >= bytes(`${globalQueueLimit}GB`)) {
 
     const refreshTasks = await listRunningRefreshTasks(socket);
 
@@ -49,13 +69,17 @@ const autoAbortRefresh = async (socket: APISocket, settings: any, queuedRefresh:
       let res = false;
 
       while (!res) {
-        if (task.id === queuedRefresh.id) {
+        if (task.id === queuedRefresh.task.id) {
+          printEvent(socket, `Aborting running task: ${task.id} - ${task.real_paths.toString()}`, 'info');
           res = await abortRefreshTask(socket, task.id)
         } else if (!queuedRefresh) {
           // Here we abort the refresh task that was running while the settings were changed
           // and the refresh queue is already over the limit
-          printEvent(socket, `Aborting running task: ${JSON.stringify(task)}`, 'info');
+          printEvent(socket, `Aborting running task: ${task.id} - ${task.real_paths.toString()}`, 'info');
           res = await abortRefreshTask(socket, task.id)
+        } else {
+          // Seems there is no running tasks
+          break;
         }
       }
 
@@ -64,8 +88,9 @@ const autoAbortRefresh = async (socket: APISocket, settings: any, queuedRefresh:
     if (!settings.getValue('auto_resume_refresh')) {
 
       // remove listener here
-      // TODO: does this make sense here? - why didn't it work properly with the onShareRefreshCompleted callback?
-      globalThis.HASH_STATS_LISTENER();
+      if (globalThis.HASH_STATS_LISTENER_ADDED) {
+        globalThis.HASH_STATS_LISTENER();
+      }
     }
   }
 }
@@ -147,7 +172,7 @@ export const refreshRealPaths = async (socket: APISocket, paths: string) => {
   let res;
   try {
     res = await socket.post('share/refresh/paths', {
-      paths: [paths]
+      paths
     });
   } catch (e) {
     printEvent(socket, `Couldn't refresh "${paths}". Error: ${e.code} - ${e.message}`, 'error');
@@ -184,17 +209,22 @@ export const refreshWholeShare = async (socket: APISocket) => {
 // Event Callbacks
 
 export const onShareRefreshQueued = async (socket: APISocket, settings: any, refreshQueuedData: any) => {
-  printEvent(socket, `Received share_refresh_queued event: ${JSON.stringify(refreshQueuedData)}`, 'info');
-  globalThis.HASH_STATS_LISTENER = await socket.addListener('hash', 'hash_statistics', checkHashQueue.bind(null, socket, settings, refreshQueuedData));
+  // DEBUG output
+  // printEvent(socket, `Received share_refresh_queued event: ${JSON.stringify(refreshQueuedData)}`, 'info');
 
+  // add stats listener
+  globalThis.HASH_STATS_LISTENER = await socket.addListener('hash', 'hash_statistics', cbCheckHashQueue.bind(null, socket, settings, refreshQueuedData));
+  globalThis.HASH_STATS_LISTENER_ADDED = true;
 };
 
 export const onShareRefreshStarted = async (socket: APISocket, settings: any, refreshQueuedData: any)=> {
-  printEvent(socket, `Received share_refresh_started event: ${JSON.stringify(refreshQueuedData)}`, 'info');
+  // DEBUG output
+  // printEvent(socket, `Received share_refresh_started event: ${JSON.stringify(refreshQueuedData)}`, 'info');
   // hmm what can i do here
 }
 
 export const onShareRefreshCompleted = async (socket: APISocket, data: any) => {
-  printEvent(socket, `Received share_refresh_completed event: ${JSON.stringify(data)}`, 'info');
-  // globalThis.HASH_STATS_LISTENER();
+  // DEBUG output
+  // printEvent(socket, `Received share_refresh_completed event: ${JSON.stringify(data)}`, 'info');
+
 };
