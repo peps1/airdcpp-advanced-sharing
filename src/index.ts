@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import { ManagedExtension } from 'airdcpp-extension';
 
 // Entry point that is executed by the extension manager

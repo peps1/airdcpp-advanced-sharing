@@ -25,11 +25,6 @@ export default (socket: APISocket, extension: any) => {
 
     await settings.load();
 
-    const subscriberInfo = {
-      id: 'advanced_sharing',
-      name: 'Advanced Sharing',
-    };
-
     // initially check the hash queue once
     checkHashQueue(socket, settings);
 

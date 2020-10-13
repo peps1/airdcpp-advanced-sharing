@@ -1,8 +1,7 @@
-
-  // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-status-message
-
 import type { APISocket } from 'airdcpp-apisocket';
 
+
+// https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-status-message
 // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-status-message
 export const printStatusMessage = async (socket: APISocket, statusMessage: string, type: string, entityId: string|number) => {
   try {

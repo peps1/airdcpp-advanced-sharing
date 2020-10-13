@@ -19,7 +19,6 @@ export const formatSize = (fileSizeInBytes: number): string => {
   return result;
 };
 
-
 // Works only for directories
 export const getLastDirectory = (fullPath: string) => {
   const result = fullPath.match(/([^/]+)[/]?$/);
@@ -30,7 +29,6 @@ export const getLastDirectory = (fullPath: string) => {
 export const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
-
 
 // Default settings
 export const SettingDefinitions = [
