@@ -85,13 +85,6 @@ const autoAbortRefresh = async (socket: APISocket, settings: any, queuedRefresh:
 
     }
 
-    if (!settings.getValue('auto_resume_refresh')) {
-
-      // remove listener here
-      if (globalThis.HASH_STATS_LISTENER_ADDED) {
-        globalThis.HASH_STATS_LISTENER();
-      }
-    }
   }
 }
 
@@ -212,19 +205,22 @@ export const onShareRefreshQueued = async (socket: APISocket, settings: any, ref
   // DEBUG output
   // printEvent(socket, `Received share_refresh_queued event: ${JSON.stringify(refreshQueuedData)}`, 'info');
 
-  // add stats listener
-  globalThis.HASH_STATS_LISTENER = await socket.addListener('hash', 'hash_statistics', cbCheckHashQueue.bind(null, socket, settings, refreshQueuedData));
-  globalThis.HASH_STATS_LISTENER_ADDED = true;
 };
 
 export const onShareRefreshStarted = async (socket: APISocket, settings: any, refreshQueuedData: any)=> {
   // DEBUG output
   // printEvent(socket, `Received share_refresh_started event: ${JSON.stringify(refreshQueuedData)}`, 'info');
-  // hmm what can i do here
+
+  // add stats listener
+  globalThis.HASH_STATS_LISTENER = await socket.addListener('hash', 'hash_statistics', cbCheckHashQueue.bind(null, socket, settings, refreshQueuedData));
+  globalThis.HASH_STATS_LISTENER_ADDED = true;
 }
 
 export const onShareRefreshCompleted = async (socket: APISocket, data: any) => {
   // DEBUG output
   // printEvent(socket, `Received share_refresh_completed event: ${JSON.stringify(data)}`, 'info');
 
+  // remove listener
+  globalThis.HASH_STATS_LISTENER();
+  globalThis.HASH_STATS_LISTENER_ADDED = false;
 };
