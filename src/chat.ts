@@ -1,19 +1,19 @@
 
   // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-chat-message
 
-import { APISocket } from 'airdcpp-apisocket';
-import { listRunningRefreshTasks, abortRefreshTask, refreshVirtualPath, refreshWholeShare, hashingAction } from './hash';
+import { listRunningRefreshTasks, abortRefreshTask, refreshWholeShare, hashingAction } from './hash';
 import { printEvent, printStatusMessage } from './log';
+import { triggerRefresh } from './commands/refresh'
 
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
-export const sendChatMessage = (socket: APISocket, chatMessage: string, type: string, entityId: string|number) => {
+export const sendChatMessage = (chatMessage: string, type: string, entityId: string|number) => {
   try {
-    socket.post(`${type}/${entityId}/chat_message`, {
+    globalThis.SOCKET.post(`${type}/${entityId}/chat_message`, {
       text: chatMessage,
     });
   } catch (e) {
-    printEvent(socket, `Failed to send: ${e}`, 'error');
+    printEvent(`Failed to send: ${e}`, 'error');
   }
 
 };
@@ -22,7 +22,7 @@ export const sendChatMessage = (socket: APISocket, chatMessage: string, type: st
 
 // entityId is the session_id used to reference the current chat session
 // example https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
-export const checkChatCommand = async (socket: APISocket, type: string, data: { command: string, args: string[], permissions: string[] }, entityId: string|number) => {
+export const checkChatCommand = async (type: string, data: { command: string, args: string[], permissions: string[] }, entityId: string|number) => {
   const { command, args } = data;
   let output;
 
@@ -33,56 +33,55 @@ export const checkChatCommand = async (socket: APISocket, type: string, data: { 
         /stophash\t\tStop all running hashers and clear refresh queue
         /tasks\t\t\tList all running refresh tasks
         /aborttask TASK_ID\tAbort task with the provided task id
-        /refresh /PATH\tRefresh the provided path
-        /fullrefresh\tRefresh all shares
+        /refresh [share/path]\tRefresh the whole share, or the provided path (e.g. /virtual name/sub folder/)
         /pausehash\tPause hashing
         /resumehash\tResume hashing`
-      printStatusMessage(socket, helpText, type, entityId)
+      printStatusMessage(helpText, type, entityId)
       break;
     }
     case 'stophash': {
-      hashingAction(socket, 'stop');
+      hashingAction('stop');
       break;
     }
     case 'pausehash': {
-      hashingAction(socket, 'pause');
+      hashingAction('pause');
       break;
     }
     case 'resumehash': {
-      hashingAction(socket, 'resume');
+      hashingAction('resume');
       break;
     }
     case 'tasks': {
-      const runningTasks = await listRunningRefreshTasks(socket);
+      const runningTasks = await listRunningRefreshTasks();
       if (runningTasks.length === 0) {
         output = 'No running tasks found...';
       } else {
         output = JSON.stringify(runningTasks);
       }
-      printStatusMessage(socket, output, type, entityId);
+      printStatusMessage(output, type, entityId);
       break;
     }
     case 'aborttask': {
-      await abortRefreshTask(socket, parseInt(args.toString(), 10));
-      const runningTasks = await listRunningRefreshTasks(socket);
+      await abortRefreshTask(parseInt(args.toString(), 10));
+      const runningTasks = await listRunningRefreshTasks();
       if (runningTasks.length === 0) {
         output = 'No running tasks found...';
       } else {
         output = JSON.stringify(runningTasks);
       }
-      printStatusMessage(socket, output, type, entityId);
+      printStatusMessage(output, type, entityId);
       break;
     }
     case 'refresh': {
-      const res = await refreshVirtualPath(socket, args.toString());
+      const res = await triggerRefresh(args)
       output = JSON.stringify(res);
-      printStatusMessage(socket, output, output, entityId)
+      printStatusMessage(output, output, entityId)
       break;
     }
     case 'fullrefresh': {
-      const res = await refreshWholeShare(socket);
+      const res = await refreshWholeShare();
       output = JSON.stringify(res);
-      printStatusMessage(socket, output, output, entityId)
+      printStatusMessage(output, output, entityId)
       break;
     }
 
@@ -91,10 +90,10 @@ export const checkChatCommand = async (socket: APISocket, type: string, data: { 
   return null;
 };
 
-export const onChatCommand = async (socket: APISocket, type: string, data: { command: string, args: string[], permissions: string[] }, entityId: string|number) => {
-  const statusMessage = await checkChatCommand(socket, type, data, entityId);
+export const onChatCommand = async (type: string, data: { command: string, args: string[], permissions: string[] }, entityId: string|number) => {
+  const statusMessage = await checkChatCommand(type, data, entityId);
   if (statusMessage) {
-    printStatusMessage(socket, statusMessage, type, entityId);
+    printStatusMessage(statusMessage, type, entityId);
   }
 };
 

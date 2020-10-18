@@ -1,16 +1,14 @@
-import type { APISocket } from 'airdcpp-apisocket';
-
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-status-message
 // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-status-message
-export const printStatusMessage = async (socket: APISocket, statusMessage: string, type: string, entityId: string|number) => {
+export const printStatusMessage = async (statusMessage: string, type: string, entityId: string|number) => {
   try {
-    socket.post(`${type}/${entityId}/status_message`, {
+    globalThis.SOCKET.post(`${type}/${entityId}/status_message`, {
       text: statusMessage,
       severity: 'info',
     });
   } catch (e) {
-    printEvent(socket, `Failed to send: ${e}`, 'error');
+    printEvent(`Failed to send: ${e}`, 'error');
   }
 };
 
@@ -19,8 +17,8 @@ export const printStatusMessage = async (socket: APISocket, statusMessage: strin
 // methods for showing information locally to the application user.
 // Messages will appear as popups and in the Events Log
 // https://airdcpp.docs.apiary.io/#reference/events
-export const printEvent = async (socket: APISocket, eventMessage: string, severity: string) => {
-  socket.post('events', {
+export const printEvent = async (eventMessage: string, severity: string) => {
+  globalThis.SOCKET.post('events', {
     text: `${eventMessage}`,
     severity,
   });

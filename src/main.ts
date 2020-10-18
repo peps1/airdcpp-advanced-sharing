@@ -8,13 +8,16 @@ import type {APISocket} from 'airdcpp-apisocket';
 
 const CONFIG_VERSION = 1;
 
+
 // Settings manager docs: https://github.com/airdcpp-web/airdcpp-extension-settings-js
 import SettingsManager from 'airdcpp-extension-settings';
 
 export default (socket: APISocket, extension: any) => {
 
+  globalThis.SOCKET = socket;
+
   // INITIALIZATION
-  const settings = SettingsManager(socket, {
+  globalThis.SETTINGS = SettingsManager(globalThis.SOCKET, {
     extensionName: extension.name,
     configFile: extension.configPath + 'config.json',
     configVersion: CONFIG_VERSION,
@@ -23,23 +26,23 @@ export default (socket: APISocket, extension: any) => {
 
   extension.onStart = async (sessionInfo: any) => {
 
-    await settings.load();
+    await globalThis.SETTINGS.load();
 
     // initially check the hash queue once
-    checkHashQueue(socket, settings);
+    checkHashQueue();
 
     // make sure to run when the settings are updated
-    settings.onValuesUpdated = checkHashQueue.bind(null, socket, settings);
+    globalThis.SETTINGS.onValuesUpdated = checkHashQueue;
 
 
     // Chat listeners
-    socket.addListener('hubs', 'hub_text_command', onChatCommand.bind(null, socket, 'hubs'));
-    socket.addListener('private_chat', 'private_chat_text_command', onChatCommand.bind(null, socket, 'private_chat'));
+    globalThis.SOCKET.addListener('hubs', 'hub_text_command', onChatCommand.bind(null, 'hubs'));
+    globalThis.SOCKET.addListener('private_chat', 'private_chat_text_command', onChatCommand.bind(null, 'private_chat'));
 
     // Refresh listeners
-    socket.addListener('share', 'share_refresh_started', onShareRefreshStarted.bind(null, socket, settings));
-    socket.addListener('share', 'share_refresh_queued', onShareRefreshQueued.bind(null, socket, settings));
-    socket.addListener('share', 'share_refresh_completed', onShareRefreshCompleted.bind(null, socket));
+    globalThis.SOCKET.addListener('share', 'share_refresh_started', onShareRefreshStarted);
+    globalThis.SOCKET.addListener('share', 'share_refresh_queued', onShareRefreshQueued);
+    globalThis.SOCKET.addListener('share', 'share_refresh_completed', onShareRefreshCompleted);
 
   };
 
