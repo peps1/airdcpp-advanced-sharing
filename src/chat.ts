@@ -73,15 +73,7 @@ export const checkChatCommand = async (type: string, data: { command: string, ar
       break;
     }
     case 'refresh': {
-      const res = await triggerRefresh(args)
-      output = JSON.stringify(res);
-      printStatusMessage(output, output, entityId)
-      break;
-    }
-    case 'fullrefresh': {
-      const res = await refreshWholeShare();
-      output = JSON.stringify(res);
-      printStatusMessage(output, output, entityId)
+      triggerRefresh(args)
       break;
     }
 

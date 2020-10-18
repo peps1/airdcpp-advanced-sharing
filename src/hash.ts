@@ -169,12 +169,12 @@ export const refreshRealPaths = async (paths: string) => {
 // https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/refresh-virtual-path
 export const refreshVirtualPath = async (path: string) => {
   // TODO: add priority
-  // FIXME: path seems to need slash at the end for the matching? Need to look more into the matching here
   let res;
   try {
     res = await globalThis.SOCKET.post('share/refresh/virtual', {
       path
     });
+    printEvent(`Started refresh of "${path}"`, 'info');
   } catch (e) {
     printEvent(`Couldn't refresh "${path}". Error: ${e.code} - ${e.message}`, 'error');
   }
