@@ -174,7 +174,6 @@ export const refreshVirtualPath = async (path: string) => {
     res = await globalThis.SOCKET.post('share/refresh/virtual', {
       path
     });
-    printEvent(`Started refresh of "${path}"`, 'info');
   } catch (e) {
     printEvent(`Couldn't refresh "${path}". Error: ${e.code} - ${e.message}`, 'error');
   }
