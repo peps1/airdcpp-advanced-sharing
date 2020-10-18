@@ -16,8 +16,8 @@ Extension advanced sharing options, batch hashing with stop or resume option. Fi
 | `/stophash` | Stop all running hashers and clear refresh queue | private |
 | `/tasks` | List all running refresh tasks | private |
 | `/aborttask TASK_ID` | Abort task with the provided task id | private |
-| `/refresh /PATH` | Refresh the provided path | private |
-| `/fullrefresh` | Refresh all shares | private |
+| `/listv` | List all available virtual paths | private |
+| `/refresh [share/path]` | Refresh the whole share, or the provided path (e.g. `/virtual name/sub folder/`) | private |
 | `/pausehash` | Pause hashing | private |
 | `/resumehash` | Resume hashing | private |
 

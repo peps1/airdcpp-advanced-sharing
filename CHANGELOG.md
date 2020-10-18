@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.0.0-beta.2](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0-beta.2) (2020-10-18)
+[Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/v1.0.0-beta.1...v1.0.0-beta.2)
+
+### Added
+* new command `/listv` - List all available virtual paths
+
+### Changed
+* removed command `/fullrefresh` - the `/refresh` command without arguments can be used
+* hopefully better handling of the hash_stats listener
+
 ## [v1.0.0-beta.1](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0-beta.1) (2020-10-11)
 [Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/5918334e8dec8cfcb9c639583a2f24bc9b6a5aa0...v1.0.0-beta.1)
 
