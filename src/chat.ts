@@ -4,6 +4,7 @@
 import { listRunningRefreshTasks, abortRefreshTask, refreshWholeShare, hashingAction } from './hash';
 import { printEvent, printStatusMessage } from './log';
 import { triggerRefresh } from './commands/refresh'
+import { printVirtualPaths } from './commands/listv'
 
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
@@ -33,6 +34,7 @@ export const checkChatCommand = async (type: string, data: { command: string, ar
         /stophash\t\tStop all running hashers and clear refresh queue
         /tasks\t\t\tList all running refresh tasks
         /aborttask TASK_ID\tAbort task with the provided task id
+        /listv\t\t\tList all available virtual paths
         /refresh [share/path]\tRefresh the whole share, or the provided path (e.g. /virtual name/sub folder/)
         /pausehash\tPause hashing
         /resumehash\tResume hashing`
@@ -74,6 +76,11 @@ export const checkChatCommand = async (type: string, data: { command: string, ar
     }
     case 'refresh': {
       triggerRefresh(args)
+      break;
+    }
+    case 'listv': {
+      output = await printVirtualPaths();
+      printStatusMessage('Virtual Names:\n\t- ' + [...output].sort().join('\n\t- '), type, entityId);
       break;
     }
 
