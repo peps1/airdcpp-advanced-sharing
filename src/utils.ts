@@ -25,6 +25,15 @@ export const getLastDirectory = (fullPath: string) => {
   return result ? result[1] : fullPath;
 };
 
+// add leading slash to string
+export const addLeadingSlash = (text: string) => {
+  return text.startsWith('/') ? text : '/' + text;
+}
+
+// add trailing slash to string
+export const addTrailingSlash = (text: string) => {
+  return text += text.endsWith('/') ? '' : '/';
+}
 
 export const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));

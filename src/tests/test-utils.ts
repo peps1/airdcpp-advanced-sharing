@@ -4,7 +4,7 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 // import sinon from 'sinon';
 
-import { formatSize, getLastDirectory, sleep } from '../utils';
+import { addLeadingSlash, addTrailingSlash, formatSize, getLastDirectory, sleep } from '../utils';
 
 describe('formatSize', () => {
   it('Should format bytes to MiB, GiB, TiB', () => {
@@ -34,5 +34,23 @@ describe('sleep', () => {
   it('Should sleep for specified amount', () => {
     sleep(100);
     assert.ok(true);
+  });
+})
+
+describe('addLeadingSlash', () => {
+  it('Should add leading slash', () => {
+    expect(addLeadingSlash('some string')).to.equal('/some string')
+  });
+  it('Should not duplicate leading slash', () => {
+    expect(addLeadingSlash('/some string')).to.equal('/some string')
+  });
+})
+
+describe('addTrailingSlash', () => {
+  it('Should add trailing slash', () => {
+    expect(addTrailingSlash('some string')).to.equal('some string/')
+  });
+  it('Should not duplicate trailing slash', () => {
+    expect(addTrailingSlash('some string/')).to.equal('some string/')
   });
 })
