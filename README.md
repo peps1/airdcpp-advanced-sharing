@@ -1,4 +1,4 @@
-# airdcpp-advanced-sharing [![GitHub Actions][build-badge]][build] [![npm package][npm-badge]][npm] [![npm downloads][npm-dl-badge]][npm] [![codecov][coverage-badge]][coverage]
+# airdcpp-advanced-sharing [![GitHub Actions][build-badge]][build] [![npm package][npm-badge]][npm] [![npm downloads][npm-dl-badge]][npm] [![snyk][snyk-badge]][snyk] [![codecov][coverage-badge]][coverage] [![codeclimate][codeclimate-badge]][codeclimate]
 
 Extension advanced sharing options, batch hashing with stop or resume option. Filessytem watcher to refresh on change is planned.
 
@@ -35,3 +35,9 @@ Extension advanced sharing options, batch hashing with stop or resume option. Fi
 
 [coverage-badge]: https://codecov.io/gh/peps1/airdcpp-advanced-sharing/branch/master/graph/badge.svg
 [coverage]: https://codecov.io/gh/peps1/airdcpp-advanced-sharing
+
+[codeclimate-badge]: https://api.codeclimate.com/v1/badges/240bcb67b18342047e78/maintainability
+[codeclimate]: https://codeclimate.com/github/peps1/airdcpp-advanced-sharing/maintainability
+
+[snyk-badge]: https://snyk.io/test/github/peps1/airdcpp-advanced-sharing/badge.svg
+[snyk]: https://snyk.io/test/github/peps1/airdcpp-advanced-sharing
