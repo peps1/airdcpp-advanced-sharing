@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.0.0-beta.3](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0-beta.3) (2020-10-20)
+[Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/v1.0.0-beta.2...v1.0.0-beta.3)
+
+### Changed / fixed
+* Auto-resume was rewritten, it was actually not working in beta.2
+
 ## [v1.0.0-beta.2](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0-beta.2) (2020-10-18)
 [Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/v1.0.0-beta.1...v1.0.0-beta.2)
 

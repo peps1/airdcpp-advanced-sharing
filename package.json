@@ -1,6 +1,6 @@
 {
   "name": "airdcpp-advanced-sharing",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "Advanced sharing options, batch hashing with stop or resume option. Filessytem watcher to refresh on change is planned.",
   "homepage": "https://github.com/peps1/airdcpp-advanced-sharing",
   "license": "MIT",
