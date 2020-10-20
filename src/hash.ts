@@ -23,31 +23,55 @@ export const checkHashQueue = async () => {
 /**
  * Callback to check the hash queue
  *
- * @param queuedRefresh   Refresh that triggered this action
- * @param data            Data object from the callback, with the hash stats
+ * @function cbCheckHashQueue
+ * @param    queuedRefresh     Refresh that triggered this action
+ * @param    cbData            Data object from the callback, with the hash stats
  */
-export const cbCheckHashQueue = async (queuedRefresh: any, data: any) => {
+export const cbCheckHashQueue = async (queuedRefresh: any, cbData: any) => {
 
   const globalQueueLimitEnabled = globalThis.SETTINGS.getValue('enable_global_refresh_queue_limit');
   const globalQueueLimit        = globalThis.SETTINGS.getValue('global_refresh_queue_limit');
-  const autoResume              = globalThis.SETTINGS.getValue('auto_resume_refresh')
 
   if ( globalQueueLimitEnabled && globalQueueLimit !== 0 ) {
-    autoAbortRefresh(queuedRefresh, data);
+    autoAbortRefresh(queuedRefresh, cbData);
   }
 
-  // we only do autoResume on callbacks
-  if (autoResume && data.hash_bytes_left === 0) {
-    autoResumeRefresh(queuedRefresh);
-  }
+
 
 };
 
 /**
+ * Callback when a hasher process finishes
+ *
+ * @function cbHasherFinished
+ * @param    queuedRefresh     Refresh that triggered this action
+ * @param    cbData            Data object from the callback, with the hasher process stats
+ *
+ * https://airdcpp.docs.apiary.io/#reference/hashing/event-listeners/hasher-finished
+ */
+const cbHasherFinished = async (queuedRefresh: any, cbData: any) => {
+
+  // get stats, see if any files left
+  const hashStats = await getHashStats();
+
+  // 0 bytes left and 0 bytes got refreshed should mean the folder/share has been completely hashed
+  if (hashStats.hash_bytes_left === 0 && cbData.size === 0) {
+    // Stop auto-resume by removing the listener
+    globalThis.HASHER_FINISHED();
+  } else if (hashStats.hash_bytes_left === 0) {
+    // Trigger auto resume and remove listener
+    autoResumeRefresh(queuedRefresh);
+    globalThis.HASHER_FINISHED();
+  }
+
+}
+
+/**
  * Abort refresh if queue is over limit
  *
- * @param queuedRefresh   Refresh that triggered this action
- * @param data            passed through data object from the callback, with the hash stats
+ * @function autoAbortRefresh
+ * @param    queuedRefresh      Refresh that triggered this action
+ * @param    data               passed through data object from the callback, with the hash stats
  */
 const autoAbortRefresh = async (queuedRefresh: any, data: any) => {
 
@@ -200,6 +224,11 @@ export const onShareRefreshStarted = async (refreshQueuedData: any)=> {
   // add stats listener
   globalThis.HASH_STATS_LISTENER = await globalThis.SOCKET.addListener('hash', 'hash_statistics', cbCheckHashQueue.bind(null, refreshQueuedData));
   globalThis.HASH_STATS_LISTENER_ADDED = true;
+
+  if (globalThis.SETTINGS.getValue('auto_resume_refresh')) {
+    globalThis.HASHER_FINISHED = globalThis.SOCKET.addListener('hash', 'hasher_finished', cbHasherFinished.bind(null, refreshQueuedData))
+  }
+
 }
 
 export const onShareRefreshCompleted = async (data: any) => {
