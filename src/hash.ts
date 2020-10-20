@@ -87,12 +87,12 @@ const autoAbortRefresh = async (queuedRefresh: any, data: any) => {
 
       while (!res) {
         if (task.id === queuedRefresh.task.id) {
-          printEvent(`Aborting running task: ${task.id} - ${task.real_paths.toString()}`, 'info');
+          printEvent(`Defined hash limit reached, stopping refresh task: ${task.id} for ${task.real_paths.join(', ')}`, 'info');
           res = await abortRefreshTask(task.id)
         } else if (!queuedRefresh) {
           // Here we abort the refresh task that was running while the settings were changed
           // and the refresh queue is already over the limit
-          printEvent(`Aborting running task: ${task.id} - ${task.real_paths.toString()}`, 'info');
+          printEvent(`Defined hash limit reached, stopping refresh task: ${task.id} for ${task.real_paths.join(', ')}`, 'info');
           res = await abortRefreshTask(task.id)
         } else {
           // Seems there is no running tasks
@@ -112,7 +112,7 @@ const autoResumeRefresh = async (queuedRefresh: any) => {
 
   // only start refresh if no refresh is running
   if (refreshTasks.length === 0) {
-    refreshRealPaths(queuedRefresh.real_paths);
+    refreshRealPaths(queuedRefresh.task.real_paths);
   }
 
 };
@@ -225,6 +225,8 @@ export const onShareRefreshStarted = async (refreshQueuedData: any)=> {
   globalThis.HASH_STATS_LISTENER = await globalThis.SOCKET.addListener('hash', 'hash_statistics', cbCheckHashQueue.bind(null, refreshQueuedData));
   globalThis.HASH_STATS_LISTENER_ADDED = true;
 
+
+  // TODO: handle auto-resume when it was disabled the moment refresh started
   if (globalThis.SETTINGS.getValue('auto_resume_refresh')) {
     globalThis.HASHER_FINISHED = globalThis.SOCKET.addListener('hash', 'hasher_finished', cbHasherFinished.bind(null, refreshQueuedData))
   }
