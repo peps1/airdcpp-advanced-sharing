@@ -41,7 +41,6 @@ export default (socket: APISocket, extension: any) => {
 
     // Refresh listeners
     globalThis.SOCKET.addListener('share', 'share_refresh_started', onShareRefreshStarted);
-    globalThis.SOCKET.addListener('share', 'share_refresh_queued', onShareRefreshQueued);
     globalThis.SOCKET.addListener('share', 'share_refresh_completed', onShareRefreshCompleted);
 
   };

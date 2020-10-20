@@ -193,12 +193,6 @@ export const refreshWholeShare = async () => {
 
 // Event Callbacks
 
-export const onShareRefreshQueued = async (refreshQueuedData: any) => {
-  // DEBUG output
-  // printEvent(`Received share_refresh_queued event: ${JSON.stringify(refreshQueuedData)}`, 'info');
-
-};
-
 export const onShareRefreshStarted = async (refreshQueuedData: any)=> {
   // DEBUG output
   // printEvent(`Received share_refresh_started event: ${JSON.stringify(refreshQueuedData)}`, 'info');
