@@ -21,4 +21,4 @@ export const triggerRefresh = async (args: string[]|void) => {
     refreshWholeShare();
   }
 
-}
+};

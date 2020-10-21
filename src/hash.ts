@@ -19,7 +19,8 @@ export const checkHashQueue = async () => {
   if ( globalQueueLimitEnabled && globalQueueLimit !== 0 ) {
     autoAbortRefresh(queuedRefresh, data);
   }
-}
+};
+
 /**
  * Callback to check the hash queue
  *
@@ -35,8 +36,6 @@ export const cbCheckHashQueue = async (queuedRefresh: any, cbData: any) => {
   if ( globalQueueLimitEnabled && globalQueueLimit !== 0 ) {
     autoAbortRefresh(queuedRefresh, cbData);
   }
-
-
 
 };
 
@@ -64,7 +63,7 @@ const cbHasherFinished = async (queuedRefresh: any, cbData: any) => {
     globalThis.HASHER_FINISHED();
   }
 
-}
+};
 
 /**
  * Abort refresh if queue is over limit
@@ -88,12 +87,12 @@ const autoAbortRefresh = async (queuedRefresh: any, data: any) => {
       while (!res) {
         if (task.id === queuedRefresh.task.id) {
           printEvent(`Defined hash limit reached, stopping refresh task: ${task.id} for ${task.real_paths.join(', ')}`, 'info');
-          res = await abortRefreshTask(task.id)
+          res = await abortRefreshTask(task.id);
         } else if (!queuedRefresh) {
           // Here we abort the refresh task that was running while the settings were changed
           // and the refresh queue is already over the limit
           printEvent(`Defined hash limit reached, stopping refresh task: ${task.id} for ${task.real_paths.join(', ')}`, 'info');
-          res = await abortRefreshTask(task.id)
+          res = await abortRefreshTask(task.id);
         } else {
           // Seems there is no running tasks
           break;
@@ -103,7 +102,7 @@ const autoAbortRefresh = async (queuedRefresh: any, data: any) => {
     }
 
   }
-}
+};
 
 // resume refresh, if no refresh tasks are running
 const autoResumeRefresh = async (queuedRefresh: any) => {
@@ -228,10 +227,10 @@ export const onShareRefreshStarted = async (refreshQueuedData: any)=> {
 
   // TODO: handle auto-resume when it was disabled the moment refresh started
   if (globalThis.SETTINGS.getValue('auto_resume_refresh')) {
-    globalThis.HASHER_FINISHED = globalThis.SOCKET.addListener('hash', 'hasher_finished', cbHasherFinished.bind(null, refreshQueuedData))
+    globalThis.HASHER_FINISHED = globalThis.SOCKET.addListener('hash', 'hasher_finished', cbHasherFinished.bind(null, refreshQueuedData));
   }
 
-}
+};
 
 export const onShareRefreshCompleted = async (data: any) => {
   // DEBUG output

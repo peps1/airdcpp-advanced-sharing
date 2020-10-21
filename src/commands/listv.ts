@@ -5,8 +5,8 @@ export const printVirtualPaths = async (): Promise<Set<string>> => {
   const virt: Set<string> = new Set();
 
   for (const result of results) {
-    virt.add(result.virtual_name)
+    virt.add(result.virtual_name);
   }
 
-  return virt
-}
+  return virt;
+};
