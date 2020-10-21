@@ -1,3 +1,4 @@
+declare const EXTENSION_NAME: string;
 
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-status-message
 // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-status-message
@@ -19,7 +20,7 @@ export const printStatusMessage = async (statusMessage: string, type: string, en
 // https://airdcpp.docs.apiary.io/#reference/events
 export const printEvent = async (eventMessage: string, severity: string) => {
   globalThis.SOCKET.post('events', {
-    text: `${eventMessage}`,
+    text: `[${EXTENSION_NAME}] ${eventMessage}`,
     severity,
   });
 };
