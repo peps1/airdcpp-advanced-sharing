@@ -1,7 +1,7 @@
 
   // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-chat-message
 
-import { listRunningRefreshTasks, abortRefreshTask, refreshWholeShare, hashingAction } from './hash';
+import { listRunningRefreshTasks, abortRefreshTask, hashingAction } from './hash';
 import { printEvent, printStatusMessage } from './log';
 import { triggerRefresh } from './commands/refresh';
 import { printVirtualPaths } from './commands/listv';
