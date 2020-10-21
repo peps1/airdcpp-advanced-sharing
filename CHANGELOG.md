@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.0-beta.4](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0-beta.4) (2020-10-21)
+[Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/v1.0.0-beta.3...v1.0.0-beta.4)
+
+### Changed
+* Added extension name to event messages
+* Some cleanup
+
 ## [v1.0.0-beta.3](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0-beta.3) (2020-10-20)
 [Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/v1.0.0-beta.2...v1.0.0-beta.3)
 
