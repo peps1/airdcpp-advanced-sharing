@@ -1,8 +1,8 @@
 'use strict';
 
 import * as utils from './utils';
-import {onChatCommand} from './chat';
-import {checkHashQueue, onShareRefreshCompleted, onShareRefreshStarted} from './hash';
+import { onChatCommand } from './chat';
+import { checkHashQueue, onShareRefreshCompleted, onShareRefreshStarted } from './hash';
 // import searchItem from './search';
 import type {APISocket} from 'airdcpp-apisocket';
 

@@ -1,6 +1,3 @@
-
-  // https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-chat-message
-
 import { listRunningRefreshTasks, abortRefreshTask, hashingAction } from './hash';
 import { printEvent, printStatusMessage } from './log';
 import { triggerRefresh } from './commands/refresh';
@@ -20,6 +17,7 @@ const helpText = `
         /listv\t\t\tList all available virtual paths
         /refresh [share/path]\tRefresh the whole share, or the provided path (e.g. /virtual name/sub folder/)`;
 
+// https://airdcpp.docs.apiary.io/#reference/hub-sessions/messages/send-chat-message
 // https://airdcpp.docs.apiary.io/#reference/private-chat-sessions/methods/send-chat-message
 export const sendChatMessage = (chatMessage: string, type: string, entityId: string|number) => {
   try {
