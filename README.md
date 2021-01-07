@@ -1,6 +1,6 @@
 # airdcpp-advanced-sharing [![GitHub Actions][build-badge]][build] [![npm package][npm-badge]][npm] [![npm downloads][npm-dl-badge]][npm] [![snyk][snyk-badge]][snyk] [![codecov][coverage-badge]][coverage] [![codeclimate][codeclimate-badge]][codeclimate]
 
-Extension advanced sharing options, batch hashing with stop or resume option. Filessytem watcher to refresh on change is planned.
+Extension advanced sharing options, batch hashing with stop or resume option.
 
 - [Bug tracker](https://github.com/peps1/airdcpp-advanced-sharing/issues)
 - [Changelog](https://github.com/peps1/airdcpp-advanced-sharing/blob/master/CHANGELOG.md)

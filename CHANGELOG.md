@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.0.0](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0) (2021-01-07)
+[Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/v1.0.0-beta.4...v1.0.0)
+
+### Changed
+* Updated dependencies
+* Some small cleanup cleanup
 ## [v1.0.0-beta.4](https://github.com/peps1/airdcpp-advanced-sharing/tree/v1.0.0-beta.4) (2020-10-21)
 [Full git log](https://github.com/peps1/airdcpp-advanced-sharing/compare/v1.0.0-beta.3...v1.0.0-beta.4)
 
