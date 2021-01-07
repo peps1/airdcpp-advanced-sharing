@@ -1,6 +1,6 @@
 
 export const printVirtualPaths = async (): Promise<Set<string>> => {
-  const results = await globalThis.SOCKET.get('share_roots');
+  const results = await global.SOCKET.get('share_roots');
 
   const virt: Set<string> = new Set();
 

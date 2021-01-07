@@ -8,8 +8,8 @@ import { printEvent } from './log';
  */
 export const checkHashQueue = async () => {
 
-  const globalQueueLimitEnabled = globalThis.SETTINGS.getValue('enable_global_refresh_queue_limit');
-  const globalQueueLimit        = globalThis.SETTINGS.getValue('global_refresh_queue_limit');
+  const globalQueueLimitEnabled = global.SETTINGS.getValue('enable_global_refresh_queue_limit');
+  const globalQueueLimit        = global.SETTINGS.getValue('global_refresh_queue_limit');
 
   // When changing the settings, we need to get the current stats to see
   // if we need to abort any refresh tasks
@@ -30,8 +30,8 @@ export const checkHashQueue = async () => {
  */
 export const cbCheckHashQueue = async (queuedRefresh: any, cbData: any) => {
 
-  const globalQueueLimitEnabled = globalThis.SETTINGS.getValue('enable_global_refresh_queue_limit');
-  const globalQueueLimit        = globalThis.SETTINGS.getValue('global_refresh_queue_limit');
+  const globalQueueLimitEnabled = global.SETTINGS.getValue('enable_global_refresh_queue_limit');
+  const globalQueueLimit        = global.SETTINGS.getValue('global_refresh_queue_limit');
 
   if ( globalQueueLimitEnabled && globalQueueLimit !== 0 ) {
     autoAbortRefresh(queuedRefresh, cbData);
@@ -56,11 +56,11 @@ const cbHasherFinished = async (queuedRefresh: any, cbData: any) => {
   // 0 bytes left and 0 bytes got refreshed should mean the folder/share has been completely hashed
   if (hashStats.hash_bytes_left === 0 && cbData.size === 0) {
     // Stop auto-resume by removing the listener
-    globalThis.HASHER_FINISHED();
+    global.HASHER_FINISHED();
   } else if (hashStats.hash_bytes_left === 0) {
     // Trigger auto resume and remove listener
     autoResumeRefresh(queuedRefresh);
-    globalThis.HASHER_FINISHED();
+    global.HASHER_FINISHED();
   }
 
 };
@@ -74,7 +74,7 @@ const cbHasherFinished = async (queuedRefresh: any, cbData: any) => {
  */
 const autoAbortRefresh = async (queuedRefresh: any, data: any) => {
 
-  const globalQueueLimit = globalThis.SETTINGS.getValue('global_refresh_queue_limit');
+  const globalQueueLimit = global.SETTINGS.getValue('global_refresh_queue_limit');
 
 
   if (data.hash_bytes_added >= bytes(`${globalQueueLimit}GB`)) {
@@ -121,7 +121,7 @@ const autoResumeRefresh = async (queuedRefresh: any) => {
 const listRefreshTasks = async () => {
   let res;
   try {
-    res = await globalThis.SOCKET.get('share/refresh/tasks');
+    res = await global.SOCKET.get('share/refresh/tasks');
   } catch (e) {
     printEvent(`Couldn't list refresh task. Error: ${e.code} - ${e.message}`, 'error');
   }
@@ -133,7 +133,7 @@ const listRefreshTasks = async () => {
 const getHashStats = async () => {
   let res;
   try {
-    res = await globalThis.SOCKET.get('hash/stats');
+    res = await global.SOCKET.get('hash/stats');
   } catch (e) {
     printEvent(`Couldn't get hash stats. Error: ${e.code} - ${e.message}`, 'error');
   }
@@ -157,7 +157,7 @@ export const listRunningRefreshTasks = async () => {
 // https://airdcpp.docs.apiary.io/#reference/share/refresh-methods/abort-refresh-task
 export const abortRefreshTask = async (taskId: number) => {
   try {
-    await globalThis.SOCKET.delete(`share/refresh/tasks/${taskId}`);
+    await global.SOCKET.delete(`share/refresh/tasks/${taskId}`);
     return true;
   } catch (e) {
     printEvent(`Couldn't abort refresh. Error: ${e.code} - ${e.message}`, 'error');
@@ -170,7 +170,7 @@ export const abortRefreshTask = async (taskId: number) => {
 // https://airdcpp.docs.apiary.io/#reference/hashing/methods/stop-hashing
 export const hashingAction = async (type: string) => {
   try {
-    globalThis.SOCKET.post(`hash/${type}`);
+    global.SOCKET.post(`hash/${type}`);
   } catch (e) {
     printEvent(`Couldn't ${type} hashing. Error: ${e.code} - ${e.message}`, 'error');
   }
@@ -180,7 +180,7 @@ export const hashingAction = async (type: string) => {
 export const refreshRealPaths = async (paths: string) => {
   let res;
   try {
-    res = await globalThis.SOCKET.post('share/refresh/paths', {
+    res = await global.SOCKET.post('share/refresh/paths', {
       paths
     });
   } catch (e) {
@@ -194,7 +194,7 @@ export const refreshVirtualPath = async (path: string) => {
   // TODO: add priority
   let res;
   try {
-    res = await globalThis.SOCKET.post('share/refresh/virtual', {
+    res = await global.SOCKET.post('share/refresh/virtual', {
       path
     });
   } catch (e) {
@@ -207,7 +207,7 @@ export const refreshVirtualPath = async (path: string) => {
 export const refreshWholeShare = async () => {
   let res;
   try {
-    res = await globalThis.SOCKET.post('share/refresh');
+    res = await global.SOCKET.post('share/refresh');
   } catch (e) {
     printEvent(`Couldn't abort refresh. Error: ${e.code} - ${e.message}`, 'error');
   }
@@ -221,13 +221,13 @@ export const onShareRefreshStarted = async (refreshQueuedData: any)=> {
   // printEvent(`Received share_refresh_started event: ${JSON.stringify(refreshQueuedData)}`, 'info');
 
   // add stats listener
-  globalThis.HASH_STATS_LISTENER = await globalThis.SOCKET.addListener('hash', 'hash_statistics', cbCheckHashQueue.bind(null, refreshQueuedData));
-  globalThis.HASH_STATS_LISTENER_ADDED = true;
+  global.HASH_STATS_LISTENER = await global.SOCKET.addListener('hash', 'hash_statistics', cbCheckHashQueue.bind(null, refreshQueuedData));
+  global.HASH_STATS_LISTENER_ADDED = true;
 
 
   // TODO: handle auto-resume when it was disabled the moment refresh started
-  if (globalThis.SETTINGS.getValue('auto_resume_refresh')) {
-    globalThis.HASHER_FINISHED = globalThis.SOCKET.addListener('hash', 'hasher_finished', cbHasherFinished.bind(null, refreshQueuedData));
+  if (global.SETTINGS.getValue('auto_resume_refresh')) {
+    global.HASHER_FINISHED = global.SOCKET.addListener('hash', 'hasher_finished', cbHasherFinished.bind(null, refreshQueuedData));
   }
 
 };
@@ -237,6 +237,6 @@ export const onShareRefreshCompleted = async (data: any) => {
   // printEvent(`Received share_refresh_completed event: ${JSON.stringify(data)}`, 'info');
 
   // remove listener
-  globalThis.HASH_STATS_LISTENER();
-  globalThis.HASH_STATS_LISTENER_ADDED = false;
+  global.HASH_STATS_LISTENER();
+  global.HASH_STATS_LISTENER_ADDED = false;
 };

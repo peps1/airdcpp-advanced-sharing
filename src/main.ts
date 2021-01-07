@@ -14,10 +14,10 @@ import SettingsManager from 'airdcpp-extension-settings';
 
 export default (socket: APISocket, extension: any) => {
 
-  globalThis.SOCKET = socket;
+  global.SOCKET = socket;
 
   // INITIALIZATION
-  globalThis.SETTINGS = SettingsManager(globalThis.SOCKET, {
+  global.SETTINGS = SettingsManager(global.SOCKET, {
     extensionName: extension.name,
     configFile: extension.configPath + 'config.json',
     configVersion: CONFIG_VERSION,
@@ -26,22 +26,22 @@ export default (socket: APISocket, extension: any) => {
 
   extension.onStart = async (sessionInfo: any) => {
 
-    await globalThis.SETTINGS.load();
+    await global.SETTINGS.load();
 
     // initially check the hash queue once
     checkHashQueue();
 
     // make sure to run when the settings are updated
-    globalThis.SETTINGS.onValuesUpdated = checkHashQueue;
+    global.SETTINGS.onValuesUpdated = checkHashQueue;
 
 
     // Chat listeners
-    globalThis.SOCKET.addListener('hubs', 'hub_text_command', onChatCommand.bind(null, 'hubs'));
-    globalThis.SOCKET.addListener('private_chat', 'private_chat_text_command', onChatCommand.bind(null, 'private_chat'));
+    global.SOCKET.addListener('hubs', 'hub_text_command', onChatCommand.bind(null, 'hubs'));
+    global.SOCKET.addListener('private_chat', 'private_chat_text_command', onChatCommand.bind(null, 'private_chat'));
 
     // Refresh listeners
-    globalThis.SOCKET.addListener('share', 'share_refresh_started', onShareRefreshStarted);
-    globalThis.SOCKET.addListener('share', 'share_refresh_completed', onShareRefreshCompleted);
+    global.SOCKET.addListener('share', 'share_refresh_started', onShareRefreshStarted);
+    global.SOCKET.addListener('share', 'share_refresh_completed', onShareRefreshCompleted);
 
   };
 
